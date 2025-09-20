@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import {
   Button,
@@ -67,7 +67,7 @@ const Dapp: React.FC = () => {
     } catch (error) {
       api.error({
         message: "连接钱包失败",
-        description: error.message,
+        description: (error as any).message,
       });
       console.error("连接钱包失败:", error);
     }
@@ -113,12 +113,25 @@ const Dapp: React.FC = () => {
       console.error("转账失败:", error);
       api.error({
         message: "转账失败",
-        description: error.message,
+        description: (error as any).message,
       });
     } finally {
       setIsLoading(false);
     }
   };
+
+  const handleChainChanged = () => {
+    // const newChainId = parseInt(chainId, 16);
+    // console.log("链已切换到:", newChainId);
+    window.location.reload();
+  };
+
+  useEffect(() => {
+    window.ethereum.on("chainChanged", handleChainChanged);
+    return () => {
+      window.ethereum.removeListener("chainChanged", handleChainChanged);
+    };
+  }, []);
 
   return (
     <>

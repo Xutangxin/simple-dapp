@@ -1,5 +1,5 @@
 .send-btn {
-  max-width: 100px;
+  width: fit-content !important;
 }
 
 .dapp {

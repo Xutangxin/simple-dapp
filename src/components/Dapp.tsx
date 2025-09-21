@@ -14,6 +14,8 @@ import {
 } from "antd";
 import { WalletOutlined, SendOutlined, LinkOutlined } from "@ant-design/icons";
 
+import styles from "../Dapp.module.css";
+
 const { Title, Text } = Typography;
 
 // 声明 window.ethereum 类型
@@ -135,7 +137,7 @@ const Dapp: React.FC = () => {
 
   return (
     <>
-      <div className="dapp">
+      <div className={styles.dapp}>
         {contextHolder}
         <Card>
           <Title level={2}>简易 dApp 示例</Title>
@@ -191,7 +193,7 @@ const Dapp: React.FC = () => {
 
                   <Form.Item>
                     <Button
-                      className="send-btn"
+                      className={styles.sendBtn}
                       type="primary"
                       htmlType="submit"
                       icon={<SendOutlined />}

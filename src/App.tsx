@@ -1,5 +1,4 @@
 import Dapp from "./components/Dapp";
-import "./App.css";
 
 function App() {
   return (

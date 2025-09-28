@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useRef, useState } from "react";
 import { ethers } from "ethers";
-import { Button, Card, Typography, notification } from "antd";
+import { Button, Card, Spin, Typography, notification } from "antd";
 import { WalletOutlined } from "@ant-design/icons";
 
 import styles from "../Dapp.module.css";
@@ -16,6 +16,7 @@ const IS_CONNECT_KEY = "isConnect";
 
 const Dapp: React.FC = () => {
   const [account, setAccount] = useState<string>("");
+  const [accountLoading, setAccountLoading] = useState(false);
   const [balance, setBalance] = useState<string>("");
   const [provider, setProvider] = useState<ethers.BrowserProvider | null>(null);
   const [signer, setSigner] = useState<ethers.Signer | null>(null);
@@ -36,6 +37,7 @@ const Dapp: React.FC = () => {
     }
 
     try {
+      setAccountLoading(true);
       const provider = new ethers.BrowserProvider(window.ethereum);
       setProvider(provider);
 
@@ -57,6 +59,8 @@ const Dapp: React.FC = () => {
         message: "连接钱包失败",
         description: (error as any).message,
       });
+    } finally {
+      setAccountLoading(false);
     }
   };
 
@@ -138,38 +142,40 @@ const Dapp: React.FC = () => {
 
   return (
     <>
-      <div className={styles.dapp}>
-        {contextHolder}
-        <Card>
-          <Title
-            level={3}
-            style={{
-              margin: "0 0 24px 0",
-            }}
-          >
-            简易DApp示例
-          </Title>
-          {!account ? (
-            <Button
-              type="primary"
-              onClick={connectWallet}
-              icon={<WalletOutlined />}
-              size="large"
+      <Spin spinning={accountLoading}>
+        <div className={styles.dapp}>
+          {contextHolder}
+          <Card>
+            <Title
+              level={3}
+              style={{
+                margin: "0 0 24px 0",
+              }}
             >
-              连接钱包
-            </Button>
-          ) : (
-            <>
-              <AccountInfo account={account} balance={balance} />
-              <Trans
-                isLoading={isLoading}
-                txHash={txHash}
-                sendTransaction={sendTransaction}
-              />
-            </>
-          )}
-        </Card>
-      </div>
+              简易DApp示例
+            </Title>
+            {!account ? (
+              <Button
+                type="primary"
+                onClick={connectWallet}
+                icon={<WalletOutlined />}
+                size="large"
+              >
+                连接钱包
+              </Button>
+            ) : (
+              <>
+                <AccountInfo account={account} balance={balance} />
+                <Trans
+                  isLoading={isLoading}
+                  txHash={txHash}
+                  sendTransaction={sendTransaction}
+                />
+              </>
+            )}
+          </Card>
+        </div>
+      </Spin>
     </>
   );
 };

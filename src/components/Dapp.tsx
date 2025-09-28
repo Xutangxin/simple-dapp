@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ethers } from "ethers";
 import { Button, Card, Typography, notification } from "antd";
 import { WalletOutlined } from "@ant-design/icons";
@@ -12,6 +12,8 @@ import AccountInfo from "./AccountInfo";
 
 const { Title } = Typography;
 
+const IS_CONNECT_KEY = "isConnect";
+
 const Dapp: React.FC = () => {
   const [account, setAccount] = useState<string>("");
   const [balance, setBalance] = useState<string>("");
@@ -20,39 +22,41 @@ const Dapp: React.FC = () => {
   const [txHash, setTxHash] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
+  const isConnect = useRef(false);
+
   const [api, contextHolder] = notification.useNotification();
 
   const connectWallet = async () => {
+    if (!window.ethereum) {
+      api.error({
+        message: "错误",
+        description: "请安装 MetaMask!",
+      });
+      return;
+    }
+
     try {
-      if (window.ethereum) {
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        setProvider(provider);
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      setProvider(provider);
 
-        const accounts = await window.ethereum.request({
-          method: "eth_requestAccounts",
-        });
-        const account = accounts[0];
-        setAccount(account);
+      const accounts = await window.ethereum.request({
+        method: "eth_requestAccounts",
+      });
+      const account = accounts[0];
+      setAccount(account);
+      isConnect.current = true;
+      sessionStorage.setItem(IS_CONNECT_KEY, "true");
 
-        // 获取balance
-        const balance = await provider.getBalance(account);
-        setBalance(ethers.formatEther(balance));
+      const balance = await provider.getBalance(account);
+      setBalance(ethers.formatEther(balance));
 
-        // 获取signer
-        const signer = await provider.getSigner();
-        setSigner(signer);
-      } else {
-        api.error({
-          message: "错误",
-          description: "请安装 MetaMask!",
-        });
-      }
+      const signer = await provider.getSigner();
+      setSigner(signer);
     } catch (error) {
       api.error({
         message: "连接钱包失败",
         description: (error as any).message,
       });
-      console.error("连接钱包失败:", error);
     }
   };
 
@@ -93,7 +97,6 @@ const Dapp: React.FC = () => {
         setBalance(ethers.formatEther(newBalance));
       }
     } catch (error) {
-      console.error("转账失败:", error);
       api.error({
         message: "转账失败",
         description: (error as any).message,
@@ -104,14 +107,33 @@ const Dapp: React.FC = () => {
   };
 
   const handleChainChanged = () => {
-    window.location.reload();
+    if (isConnect.current) {
+      connectWallet();
+    }
+  };
+
+  const handleAccountsChange = (accounts: string[]) => {
+    if (accounts.length) {
+      connectWallet();
+    } else {
+      sessionStorage.setItem(IS_CONNECT_KEY, "");
+      location.reload();
+    }
   };
 
   useEffect(() => {
     window.ethereum.on("chainChanged", handleChainChanged);
+    window.ethereum.on("accountsChanged", handleAccountsChange);
     return () => {
       window.ethereum.removeListener("chainChanged", handleChainChanged);
+      window.ethereum.removeListener("accountsChanged", handleAccountsChange);
     };
+  }, []);
+
+  useEffect(() => {
+    if (sessionStorage.getItem(IS_CONNECT_KEY) && !isConnect.current) {
+      connectWallet();
+    }
   }, []);
 
   return (

@@ -8,7 +8,6 @@ import {
   Alert,
   InputNumber,
 } from "antd";
-import React from "react";
 const { Text } = Typography;
 
 import { SendOutlined, LinkOutlined } from "@ant-design/icons";
@@ -18,35 +17,15 @@ import styles from "../Dapp.module.css";
 import { type TransferForm } from "../models";
 
 interface Props {
-  account: string;
-  balance: string;
   isLoading: boolean;
   txHash: string;
   sendTransaction: (values: TransferForm) => Promise<void>;
 }
 
-export const ConnectResult: React.FC<Props> = ({
-  account,
-  balance,
-  isLoading,
-  txHash,
-  sendTransaction,
-}) => {
+export default function Trans({ isLoading, txHash, sendTransaction }: Props) {
   const [form] = Form.useForm<TransferForm>();
   return (
     <Space direction="vertical" style={{ width: "100%" }}>
-      <Alert
-        message="钱包已连接"
-        description={
-          <>
-            <Text strong>当前账户:</Text> {account}
-            <br />
-            <Text strong>账户余额:</Text> {balance} ETH
-          </>
-        }
-        type="success"
-        showIcon
-      />
       <Card title="发送 ETH" size="small">
         <Form form={form} onFinish={sendTransaction} layout="vertical">
           <Form.Item
@@ -110,4 +89,4 @@ export const ConnectResult: React.FC<Props> = ({
       )}
     </Space>
   );
-};
+}

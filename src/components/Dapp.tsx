@@ -5,9 +5,11 @@ import { Button, Card, Typography, notification } from "antd";
 import { WalletOutlined } from "@ant-design/icons";
 
 import styles from "../Dapp.module.css";
-import { ConnectResult } from "./ConnectResult";
 
 import { type TransferForm } from "../models";
+import Trans from "./Trans";
+import AccountInfo from "./AccountInfo";
+
 const { Title } = Typography;
 
 const Dapp: React.FC = () => {
@@ -117,7 +119,14 @@ const Dapp: React.FC = () => {
       <div className={styles.dapp}>
         {contextHolder}
         <Card>
-          <Title level={2}>简易 dApp 示例</Title>
+          <Title
+            level={3}
+            style={{
+              margin: "0 0 24px 0",
+            }}
+          >
+            简易DApp示例
+          </Title>
           {!account ? (
             <Button
               type="primary"
@@ -128,13 +137,14 @@ const Dapp: React.FC = () => {
               连接钱包
             </Button>
           ) : (
-            <ConnectResult
-              account={account}
-              balance={balance}
-              isLoading={isLoading}
-              txHash={txHash}
-              sendTransaction={sendTransaction}
-            />
+            <>
+              <AccountInfo account={account} balance={balance} />
+              <Trans
+                isLoading={isLoading}
+                txHash={txHash}
+                sendTransaction={sendTransaction}
+              />
+            </>
           )}
         </Card>
       </div>

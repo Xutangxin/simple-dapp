@@ -6,7 +6,6 @@ import { WalletOutlined } from "@ant-design/icons";
 
 import styles from "../Dapp.module.css";
 
-import { type TransferForm } from "../models";
 import Trans from "./Trans";
 import AccountInfo from "./AccountInfo";
 
@@ -15,13 +14,11 @@ const { Title } = Typography;
 const IS_CONNECT_KEY = "isConnect";
 
 const Dapp: React.FC = () => {
-  const [account, setAccount] = useState<string>("");
-  const [accountLoading, setAccountLoading] = useState(false);
-  const [balance, setBalance] = useState<string>("");
+  const [account, setAccount] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [balance, setBalance] = useState("");
   const [provider, setProvider] = useState<ethers.BrowserProvider | null>(null);
   const [signer, setSigner] = useState<ethers.Signer | null>(null);
-  const [txHash, setTxHash] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const isConnect = useRef(false);
 
@@ -37,7 +34,7 @@ const Dapp: React.FC = () => {
     }
 
     try {
-      setAccountLoading(true);
+      setLoading(true);
       const provider = new ethers.BrowserProvider(window.ethereum);
       setProvider(provider);
 
@@ -60,53 +57,7 @@ const Dapp: React.FC = () => {
         description: (error as any).message,
       });
     } finally {
-      setAccountLoading(false);
-    }
-  };
-
-  const sendTransaction = async (values: TransferForm) => {
-    if (!signer) {
-      api.error({
-        message: "错误",
-        description: "请先连接钱包",
-      });
-      return;
-    }
-    if (!ethers.isAddress(values.recipient)) {
-      api.error({
-        message: "不是一个有效的以太坊地址",
-      });
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      const tx = await signer.sendTransaction({
-        to: values.recipient,
-        value: ethers.parseEther(String(values.amount)),
-      });
-      setTxHash(tx.hash);
-      api.success({
-        message: `交易已发送: ${tx.hash}`,
-      });
-
-      await tx.wait();
-      api.success({
-        message: "交易已确认",
-      });
-
-      // 更新余额
-      if (provider && account) {
-        const newBalance = await provider.getBalance(account);
-        setBalance(ethers.formatEther(newBalance));
-      }
-    } catch (error) {
-      api.error({
-        message: "转账失败",
-        description: (error as any).message,
-      });
-    } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
@@ -142,7 +93,7 @@ const Dapp: React.FC = () => {
 
   return (
     <>
-      <Spin spinning={accountLoading}>
+      <Spin spinning={loading}>
         <div className={styles.dapp}>
           {contextHolder}
           <Card>
@@ -167,9 +118,10 @@ const Dapp: React.FC = () => {
               <>
                 <AccountInfo account={account} balance={balance} />
                 <Trans
-                  isLoading={isLoading}
-                  txHash={txHash}
-                  sendTransaction={sendTransaction}
+                  account={account}
+                  provider={provider}
+                  signer={signer}
+                  setBalance={setBalance}
                 />
               </>
             )}

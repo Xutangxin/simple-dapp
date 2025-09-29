@@ -7,6 +7,7 @@ import {
   Space,
   Alert,
   InputNumber,
+  notification,
 } from "antd";
 const { Text } = Typography;
 
@@ -15,17 +16,76 @@ import { SendOutlined, LinkOutlined } from "@ant-design/icons";
 import styles from "../Dapp.module.css";
 
 import { type TransferForm } from "../models";
+import { ethers } from "ethers";
+import { useState } from "react";
 
 interface Props {
-  isLoading: boolean;
-  txHash: string;
-  sendTransaction: (values: TransferForm) => Promise<void>;
+  account: string;
+  provider: ethers.BrowserProvider | null;
+  signer: ethers.Signer | null;
+  setBalance: (balance: string) => void;
 }
 
-export default function Trans({ isLoading, txHash, sendTransaction }: Props) {
+export default function Trans({
+  account,
+  provider,
+  signer,
+  setBalance,
+}: Props) {
+  const [txHash, setTxHash] = useState("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [form] = Form.useForm<TransferForm>();
+  const [api, contextHolder] = notification.useNotification();
+
+  const sendTransaction = async (values: TransferForm) => {
+    if (!signer) {
+      api.error({
+        message: "错误",
+        description: "请先连接钱包",
+      });
+      return;
+    }
+    if (!ethers.isAddress(values.recipient)) {
+      api.error({
+        message: "不是一个有效的以太坊地址",
+      });
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const tx = await signer.sendTransaction({
+        to: values.recipient,
+        value: ethers.parseEther(String(values.amount)),
+      });
+      setTxHash(tx.hash);
+      api.success({
+        message: `交易已发送: ${tx.hash}`,
+      });
+
+      await tx.wait();
+      api.success({
+        message: "交易已确认",
+      });
+
+      // 更新余额
+      if (provider && account) {
+        const newBalance = await provider.getBalance(account);
+        setBalance(ethers.formatEther(newBalance));
+      }
+    } catch (error) {
+      api.error({
+        message: "转账失败",
+        description: (error as Error).message,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Space direction="vertical" style={{ width: "100%" }}>
+      {contextHolder}
       <Card title="发送 ETH" size="small">
         <Form form={form} onFinish={sendTransaction} layout="vertical">
           <Form.Item

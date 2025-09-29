@@ -14,9 +14,9 @@ const { Title } = Typography;
 const IS_CONNECT_KEY = "isConnect";
 
 const Dapp: React.FC = () => {
-  const [account, setAccount] = useState<string>("");
-  const [accountLoading, setAccountLoading] = useState(false);
-  const [balance, setBalance] = useState<string>("");
+  const [account, setAccount] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [balance, setBalance] = useState("");
   const [provider, setProvider] = useState<ethers.BrowserProvider | null>(null);
   const [signer, setSigner] = useState<ethers.Signer | null>(null);
 
@@ -34,7 +34,7 @@ const Dapp: React.FC = () => {
     }
 
     try {
-      setAccountLoading(true);
+      setLoading(true);
       const provider = new ethers.BrowserProvider(window.ethereum);
       setProvider(provider);
 
@@ -57,7 +57,7 @@ const Dapp: React.FC = () => {
         description: (error as any).message,
       });
     } finally {
-      setAccountLoading(false);
+      setLoading(false);
     }
   };
 
@@ -93,7 +93,7 @@ const Dapp: React.FC = () => {
 
   return (
     <>
-      <Spin spinning={accountLoading}>
+      <Spin spinning={loading}>
         <div className={styles.dapp}>
           {contextHolder}
           <Card>

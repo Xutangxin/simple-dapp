@@ -4,10 +4,9 @@ import { ethers } from "ethers";
 import { Button, Card, Spin, Typography, notification } from "antd";
 import { WalletOutlined } from "@ant-design/icons";
 
-import styles from "../Dapp.module.css";
-
 import Trans from "./Trans";
 import AccountInfo from "./AccountInfo";
+import { sepoliaChainId } from "../constants";
 
 const { Title } = Typography;
 
@@ -24,14 +23,27 @@ const Dapp: React.FC = () => {
 
   const [api, contextHolder] = notification.useNotification();
 
-  const connectWallet = async () => {
+  const check = () => {
     if (!window.ethereum) {
       api.error({
         message: "错误",
         description: "请安装 MetaMask!",
       });
-      return;
+      return false;
     }
+
+    if (window.ethereum.networkVersion !== sepoliaChainId) {
+      api.error({
+        message: "错误",
+        description: "请把 MetaMask 切换到 Sepolia 测试网",
+      });
+      return false;
+    }
+    return true;
+  };
+
+  const connectWallet = async () => {
+    if (!check()) return;
 
     try {
       setLoading(true);
@@ -94,7 +106,7 @@ const Dapp: React.FC = () => {
   return (
     <>
       <Spin spinning={loading}>
-        <div className={styles.dapp}>
+        <div className="max-w-[700px] mx-auto mt-[5vh]">
           {contextHolder}
           <Card>
             <Title

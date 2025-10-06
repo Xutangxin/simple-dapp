@@ -13,8 +13,6 @@ const { Text } = Typography;
 
 import { SendOutlined, LinkOutlined } from "@ant-design/icons";
 
-import styles from "../Dapp.module.css";
-
 import { type TransferForm } from "../models";
 import { ethers } from "ethers";
 import { useState } from "react";
@@ -89,7 +87,7 @@ export default function Trans({
       <Card title="发送 ETH" size="small">
         <Form form={form} onFinish={sendTransaction} layout="vertical">
           <Form.Item
-            initialValue="0x817C6Ef5f2EF3CC56ce87942BF7ed74138EC284C"
+            initialValue="0x5bF9634a97fAdfCEDCE8fF81A293dFf0FA060ADa"
             name="recipient"
             label="接收地址"
             rules={[{ required: true, message: "请输入接收地址" }]}
@@ -114,16 +112,17 @@ export default function Trans({
           </Form.Item>
 
           <Form.Item>
-            <Button
-              className={styles.sendBtn}
-              type="primary"
-              htmlType="submit"
-              icon={<SendOutlined />}
-              loading={isLoading}
-              block
-            >
-              {isLoading ? "发送中" : "发送"}
-            </Button>
+            <div className="w-fit">
+              <Button
+                type="primary"
+                htmlType="submit"
+                icon={<SendOutlined />}
+                loading={isLoading}
+                block
+              >
+                {isLoading ? "发送中" : "发送"}
+              </Button>
+            </div>
           </Form.Item>
         </Form>
       </Card>

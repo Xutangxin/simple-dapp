@@ -1,14 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useRef, useState } from "react";
 import { ethers } from "ethers";
-import { Button, Card, Spin, Typography, notification } from "antd";
+import { Button, Card, Spin, notification, Popconfirm } from "antd";
 import { WalletOutlined } from "@ant-design/icons";
 
 import Trans from "./Trans";
 import AccountInfo from "./AccountInfo";
-import { sepoliaChainId } from "../constants";
-
-const { Title } = Typography;
 
 const IS_CONNECT_KEY = "isConnect";
 
@@ -20,7 +17,6 @@ const Dapp: React.FC = () => {
   const [signer, setSigner] = useState<ethers.Signer | null>(null);
 
   const isConnect = useRef(false);
-
   const [api, contextHolder] = notification.useNotification();
 
   const check = () => {
@@ -31,20 +27,12 @@ const Dapp: React.FC = () => {
       });
       return false;
     }
-
-    if (window.ethereum.networkVersion !== sepoliaChainId) {
-      api.error({
-        message: "错误",
-        description: "请把 MetaMask 切换到 Sepolia 测试网",
-      });
-      return false;
-    }
+    console.log("chainId: ", window.ethereum.networkVersion);
     return true;
   };
 
   const connectWallet = async () => {
     if (!check()) return;
-
     try {
       setLoading(true);
       const provider = new ethers.BrowserProvider(window.ethereum);
@@ -70,6 +58,19 @@ const Dapp: React.FC = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const close = async () => {
+    try {
+      await window.ethereum.request({
+        method: "wallet_revokePermissions",
+        params: [{ eth_accounts: {} }],
+      });
+      setAccount("");
+      isConnect.current = false;
+    } catch (e) {
+      console.warn("revoke failed", e);
     }
   };
 
@@ -109,14 +110,7 @@ const Dapp: React.FC = () => {
         <div className="max-w-[700px] mx-auto mt-[5vh]">
           {contextHolder}
           <Card>
-            <Title
-              level={3}
-              style={{
-                margin: "0 0 24px 0",
-              }}
-            >
-              简易DApp示例
-            </Title>
+            <p className="mb-[20px] text-[26px] font-bold">Simple DApp</p>
             {!account ? (
               <Button
                 type="primary"
@@ -128,6 +122,17 @@ const Dapp: React.FC = () => {
               </Button>
             ) : (
               <>
+                <Popconfirm
+                  title="确认"
+                  description="确定断开连接吗？"
+                  onConfirm={close}
+                  okText="确定"
+                  cancelText="取消"
+                >
+                  <Button danger className="mb-[12px]">
+                    断开连接
+                  </Button>
+                </Popconfirm>
                 <AccountInfo account={account} balance={balance} />
                 <Trans
                   account={account}
